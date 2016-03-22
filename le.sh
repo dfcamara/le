@@ -714,8 +714,9 @@ _initpath() {
 
 _apachePath() {
   httpdroot="$(apachectl -V | grep HTTPD_ROOT= | cut -d = -f 2 | tr -d '"' )"
-  httpdconfname="$(apachectl -V | grep SERVER_CONFIG_FILE= | cut -d = -f 2 | tr -d '"' )"
-  httpdconf="$httpdroot/$httpdconfname"
+  serverconfigfile="$(apachectl -V | grep SERVER_CONFIG_FILE= | cut -d = -f 2 | tr -d '"' )"
+  httpdconf="$httpdroot/$serverconfigfile"
+  httpdconfname="$(basename $httpdconf)"
   if [ ! -f $httpdconf ] ; then
     _err "Apache Config file not found" $httpdconf
     return 1
@@ -1104,10 +1105,11 @@ issue() {
         mkdir -p "$wellknown_path"
         echo -n "$keyauthorization" > "$wellknown_path/$token"
 
-        webroot_owner=$(_stat $Le_Webroot)
-        _debug "Changing owner/group of .well-known to $webroot_owner"
-        chown -R $webroot_owner "$Le_Webroot/.well-known"
-        
+        if [ "$Le_Webroot" != "apache" ] ; then
+          webroot_owner=$(_stat $Le_Webroot)
+          _debug "Changing owner/group of .well-known to $webroot_owner"
+          chown -R $webroot_owner "$Le_Webroot/.well-known"
+        fi
       fi
     fi
     
